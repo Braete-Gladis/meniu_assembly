@@ -12,20 +12,24 @@
 	linie8 db "Numele inregistrate sunt:",13,10,"$"	
 	linie9 db "Introduceti un nume de 5 caractere:",13,10,"$"
 	linieNoua db 13,10,"$"
+	;Numarul de nume stocate in stiva
 	nrNume dw 0
+	;Un vector de tine 5 caractere pentru afisarea unui nume
 	tmpNume db ?,?,?,?,?,"$"
+	;2 variabile ce salveaza pointerii pentru a se putea lucra cu registrele respective
 	tmpBp dw ?
 	tmpIP dw ?
 
 .code 
 
-		afiseazaLinie macro linie
-	    	mov ah, 09h
-			lea dx, linie
-			int 21h
-		endm
+	;Macro pentru afisarea unuei singure linii terminata cu caracterul '$'
+	afiseazaLinie macro linie
+		mov ah, 09h
+		lea dx, linie
+		int 21h
+	endm
 
-	
+	;Proceduri pentru afisarea unui numar pe ecran
 	printSmall proc far
 		push bp
 		mov bp, sp
@@ -35,6 +39,7 @@
 		cmp al, 0
 		je isZero
 
+		;Impartim la 10 pentru a obtine restul care reprezinta ultima cifra din numar
 		mov cl, 10
 		div cl
 		push ax
@@ -86,10 +91,13 @@
 			
 	printBig endp
 
+	;Procedura care printeaza un singur nume de 5 caractere de la adresa bp
 	printeazaNume proc near
 
+		;Scoatem IP din stiva si il adaugam la final inainte de ret
 		pop bx
 
+		;Incarcam in tmpNume 5 caractere ce reprezinta numele din stiva de la adresa bp
 		mov dx, word ptr [bp]
 		mov byte ptr [tmpNume+4], dl
 
@@ -135,6 +143,7 @@
 		ret
 	printeazaNume endp
 
+	;Procedura care printeaza pe rand toate numele de 5 caractere stocate pana acum in stiva
 	printeazaToateNumele proc near
 
 		cmp nrNume, 0
@@ -144,10 +153,13 @@
 		afiseazaLinie linie8
 		afiseazaLinie linieNoua
 
+		;Salvam valorile initiale ale bp si ip si le incarcam inapoi la final
 		mov tmpBp, bp
 		pop tmpIp
 		mov bp, sp
 
+		;Vrem sa incepem sa printam de la primul nume la ultimul introdus
+		;astfel ca trebuie sa ne intoarcem (nrNume-1)*10 bytes de la capul stivei
 		mov ax, nrNume
 		dec ax
 		mov cx, 10
@@ -171,6 +183,7 @@
 			ret
 	printeazaToateNumele endp
 
+	;Procedura care citeste sterge un nume in functie de id-ul citit de la tastatura
 	stergeNume proc near
 		
 		pop tmpIp
@@ -186,7 +199,7 @@
 		sub al, 30h
 		mov bl, al
 
-		;Mutare cu 5(caracter)*2(marime in bytes)*ax(nr de cuvinte peste care sar)
+		;Mutare cu 5(nr de caractere)*2(marime in bytes)*ax(nr de cuvinte peste care sar)
 		mov ax, nrNume
 		inc ax
 		sub ax, bx
@@ -197,6 +210,7 @@
 
 		mov cx, ax
 		
+		;Se face o copiere de genul nume[k] = nume[k+1] pentru k de la id pana la nrNume-1
 		buclaCopiere:
 			
 			mov dx, word ptr [bp-12]
@@ -230,6 +244,7 @@
 
 	stergeNume endp
 
+	;Procedura care citeste un nume de 5 caractere si il salveaza in stiva
 	adaugaNumeLaCoada proc near
 
 		afiseazaLinie linieNoua
@@ -266,6 +281,7 @@
 			afiseazaLinie linie4
 			afiseazaLinie linie5
 
+		;Citirea optiunii introduse de utilizator (1-4)
 		mov ah, 01h
 		int 21h
 		sub al, 30h
