@@ -29,50 +29,21 @@
 		int 21h
 	endm
 
-	;Proceduri pentru afisarea unui numar pe ecran
-	printSmall proc far
-		push bp
-		mov bp, sp
-		;Divide to get last digit
-		mov ah, 0
-		mov al, byte ptr [bp+6]
-		cmp al, 0
-		je isZero
-
-		;Impartim la 10 pentru a obtine restul care reprezinta ultima cifra din numar
-		mov cl, 10
-		div cl
-		push ax
-		call printSmall
-		;Move last digit in dx and prepare for printing
-		mov dl, byte ptr [bp-1]
-		add dl, 30h
-		;Print
-		mov ah, 2
-		int 21h
-		pop ax
-		pop bp
-		ret
-		isZero:
-			pop bp
-			ret
-			
-	printSmall endp
-
-	printBig proc far
+	;Procedura pentru afisarea unui numar pe ecran
+	printInt proc far
 		push bp
 		mov bp, sp
 		mov dx, 0
 		;Divide to get last digit
 		mov ax, word ptr [bp+6]
-		cmp ah, 0
-		je isSmall
+		cmp ax, 0
+		je isZero
 
 		mov cx, 10
 		div cx
 		push dx
 		push ax
-		call printBig
+		call printInt
 		;Move last digit in dx and prepare for printing
 		pop ax
 		pop dx
@@ -82,14 +53,10 @@
 		int 21h
 		pop bp
 		ret
-		isSmall:
-			push ax
-			call printSmall
-			pop ax
+		isZero:
 			pop bp
 			ret
-			
-	printBig endp
+	printInt endp
 
 	;Procedura care printeaza un singur nume de 5 caractere de la adresa bp
 	printeazaNume proc near
@@ -120,7 +87,7 @@
 		inc dx
 		push cx
 		push dx
-		call printBig
+		call printInt
 		pop dx
 		pop cx
 		
